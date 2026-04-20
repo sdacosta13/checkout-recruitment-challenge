@@ -1,5 +1,6 @@
 using FluentValidation;
 
+using PaymentGateway.Api.Clients;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Services;
 
@@ -16,7 +17,11 @@ builder.Services.AddSingleton<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IPaymentRepository, PaymentsRepository>();
 builder.Services.AddSingleton<ITimeService, DateTimeService>();
 builder.Services.AddSingleton<IValidator<NewPaymentRequestDto>, NewPaymentRequestDtoValidator>();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("BankSimulator", c =>
+{
+    c.BaseAddress = new Uri("http://localhost:8080");
+});
+builder.Services.AddTransient<IBankAccountClient, BankAccountClient>();
 
 var app = builder.Build();
 

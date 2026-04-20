@@ -1,4 +1,3 @@
-﻿using PaymentGateway.Api.Enums;
 using PaymentGateway.Api.Models.Entities;
 using PaymentGateway.Api.Models.Responses;
 
@@ -6,31 +5,19 @@ namespace PaymentGateway.Api.Models;
 
 public static class DtoMapper
 {
-    public static PaymentResponseDto? ToDo(PaymentRecord? record)
+    public static PaymentResponseDto? ToDto(PaymentResponse? response)
     {
-        if (record == null)
+        if (response is null)
             return null;
-        
+
         return new()
         {
-            Amount = ToMoneyDto(record.Amount),
-            CardNumberLastFour = record.CardNumberLastFour,
-            ExpiryYear = record.ExpiryYear,
-            ExpiryMonth = record.ExpiryMonth,
-            Id = record.Id,
-            Status = ToPaymentStatusDto(record.Status),
+            Id = response.Id,
+            Status = response.Status.ToString(),
+            CardNumberLastFour = response.CardNumberLastFour,
+            ExpiryMonth = response.ExpiryMonth,
+            ExpiryYear = response.ExpiryYear,
+            Amount = new MoneyDto { Amount = response.Amount.Amount, Currency = response.Amount.Currency },
         };
     }
-
-    private static string ToPaymentStatusDto(PaymentStatus status)
-    {
-        return status.ToString();
-    }
-
-    private static MoneyDto ToMoneyDto(Money money)
-        => new()
-        {
-            Amount = money.Amount, 
-            Currency = money.Currency,
-        };
 }
