@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
 
+using Microsoft.AspNetCore.Mvc;
+
+using PaymentGateway.Api.Models;
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
 
@@ -7,20 +11,29 @@ namespace PaymentGateway.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class PaymentsController : Controller
+public class PaymentsController(IPaymentRepository paymentsRepository, 
+    IValidator<NewPaymentRequestDto> paymentRequestValidator) : Controller
 {
-    private readonly PaymentsRepository _paymentsRepository;
-
-    public PaymentsController(PaymentsRepository paymentsRepository)
+    [HttpGet("{id:guid}")]
+    public ActionResult<PaymentResponseDto> GetPayment([FromRoute] Guid id)
     {
-        _paymentsRepository = paymentsRepository;
+        var found = paymentsRepository.TryGet(id, out var paymentRecord);
+        if (!found)
+            return NotFound();
+        
+        var response = DtoMapper.ToDo(paymentRecord);
+        return Ok(response);
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
+    [HttpPost]
+    public async Task<ActionResult> PostPayment([FromBody] NewPaymentRequestDto dto)
     {
-        var payment = _paymentsRepository.Get(id);
-
-        return new OkObjectResult(payment);
+        var result = await paymentRequestValidator.ValidateAsync(dto);
+        if(!result.IsValid)
+            return BadRequest(result.Errors);
+        
+        paymentsRepository.Add(RecordMapper.ToPaymentRecord(dto));
+        
+        return Ok(NewPaymentResponseDto.Accepted());
     }
 }

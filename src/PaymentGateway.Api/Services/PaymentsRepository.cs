@@ -1,18 +1,35 @@
-﻿using PaymentGateway.Api.Models.Responses;
+﻿using PaymentGateway.Api.Models.Entities;
 
 namespace PaymentGateway.Api.Services;
 
-public class PaymentsRepository
+public interface IPaymentRepository
 {
-    public List<PostPaymentResponse> Payments = new();
+    void Add(PaymentRecord payment);
+    bool TryGet(Guid id, out PaymentRecord? payment);
+}
+
+public class PaymentsRepository(ILogger<PaymentsRepository> logger) : IPaymentRepository
+{
+    private readonly List<PaymentRecord> _payments = new();
     
-    public void Add(PostPaymentResponse payment)
+    public void Add(PaymentRecord payment)
     {
-        Payments.Add(payment);
+        _payments.Add(payment);
     }
 
-    public PostPaymentResponse Get(Guid id)
+    public bool TryGet(Guid id, out PaymentRecord? payment)
     {
-        return Payments.FirstOrDefault(p => p.Id == id);
+        var matchingRecords = _payments.Where(p => p.Id == id).ToList();
+        if (matchingRecords.Count == 1)
+        {
+            payment = matchingRecords[0];
+            return true;
+        }
+            
+        if (matchingRecords.Count > 1)
+            logger.LogError("Multiple {RecordTyp} records found for {PaymentId}", nameof(PaymentRecord), id);
+        
+        payment = null;
+        return false;
     }
 }
