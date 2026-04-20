@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 
+using PaymentGateway.Api.Enums;
 using PaymentGateway.Api.Models.Entities;
 
 namespace PaymentGateway.Api.Clients;
@@ -19,14 +20,14 @@ public record BankSimulatorResponse(
 
 public interface IBankAccountClient
 {
-    Task<BankSimulatorResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default);
+    Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default);
 }
 
 public class BankAccountClient(IHttpClientFactory httpClientFactory) : IBankAccountClient
 {
     private const string ClientName = "BankSimulator";
 
-    public async Task<BankSimulatorResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default)
+    public async Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default)
     {
         var client = httpClientFactory.CreateClient(ClientName);
 
@@ -42,6 +43,19 @@ public class BankAccountClient(IHttpClientFactory httpClientFactory) : IBankAcco
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<BankSimulatorResponse>(cancellationToken: ct);
+        var bankResponse = await response.Content.ReadFromJsonAsync<BankSimulatorResponse>(cancellationToken: ct);
+
+        return bankResponse is null ? null : ToPaymentResponse(bankResponse, record);
     }
+
+    private static PaymentResponse ToPaymentResponse(BankSimulatorResponse bankResponse, PaymentRecord record) =>
+        new()
+        {
+            Id = record.Id,
+            Status = bankResponse.Authorized ? PaymentStatus.Authorized : PaymentStatus.Declined,
+            CardNumberLastFour = record.CardNumber[^4..],
+            Amount = record.Amount,
+            ExpiryMonth = record.ExpiryMonth,
+            ExpiryYear = record.ExpiryYear,
+        };
 }

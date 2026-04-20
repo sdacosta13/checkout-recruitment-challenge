@@ -23,8 +23,7 @@ public class PaymentService(IBankAccountClient bankClient) : IPaymentService
         {
             try
             {
-                var bankResponse = await bankClient.AuthorizeAsync(record, ct);
-                return bankResponse is null ? null : RecordMapper.ToPaymentResponse(bankResponse, record);
+                return await bankClient.AuthorizeAsync(record, ct);
             }
             catch (HttpRequestException) when (attempt < MaxAttempts - 1)
             {
