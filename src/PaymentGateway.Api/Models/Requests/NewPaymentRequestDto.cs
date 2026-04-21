@@ -57,6 +57,8 @@ public class NewPaymentRequestDtoValidator : AbstractValidator<NewPaymentRequest
 
     private bool HaveExpiryInTheFuture(NewPaymentRequestDto request)
     {
+        if (request.ExpiryMonth is < 1 or > 12 || request.ExpiryYear <= 0)
+            return false;
         var now = _timeService.UtcNow();
         var expiry = new DateTime(request.ExpiryYear, request.ExpiryMonth, 1).AddMonths(1);
         return expiry > now;

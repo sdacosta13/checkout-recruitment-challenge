@@ -1,0 +1,26 @@
+{"description":"Valid payment","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":200}
+{"description":"Valid payment - USD","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"USD","amount":5000}},"expectedStatus":200}
+{"description":"Valid payment - EUR","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"EUR","amount":250}},"expectedStatus":200}
+{"description":"Valid payment - 4-digit CVV","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"1234","amount":{"currency":"GBP","amount":100}},"expectedStatus":200}
+{"description":"Valid payment - 14-digit card (minimum)","payload":{"cardNumber":"12345678901234","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":200}
+{"description":"Valid payment - 19-digit card (maximum)","payload":{"cardNumber":"1234567890123456789","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":200}
+{"description":"Valid payment - zero amount","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":0}},"expectedStatus":200}
+{"description":"Card number too short (13 digits)","payload":{"cardNumber":"1234567890123","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Card number too long (20 digits)","payload":{"cardNumber":"12345678901234567890","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Card number contains letters","payload":{"cardNumber":"abcdefghijklmnop","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Card number empty","payload":{"cardNumber":"","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Expired card","payload":{"cardNumber":"2222405343248877","expiryMonth":1,"expiryYear":2020,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Expiry month too low (0)","payload":{"cardNumber":"2222405343248877","expiryMonth":0,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Expiry month too high (13)","payload":{"cardNumber":"2222405343248877","expiryMonth":13,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"CVV too short (2 digits)","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"12","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"CVV too long (5 digits)","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"12345","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"CVV contains letters","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"abc","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Unsupported currency","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"XYZ","amount":100}},"expectedStatus":400}
+{"description":"Negative amount","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBP","amount":-1}},"expectedStatus":400}
+{"description":"Currency too short (2 chars)","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GB","amount":100}},"expectedStatus":400}
+{"description":"Currency too long (4 chars)","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"GBPP","amount":100}},"expectedStatus":400}
+{"description":"Currency numeric","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"123","amount":100}},"expectedStatus":400}
+{"description":"Currency empty","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":2030,"cvv":"123","amount":{"currency":"","amount":100}},"expectedStatus":400}
+{"description":"Expiry year zero","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":0,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Expiry year negative","payload":{"cardNumber":"2222405343248877","expiryMonth":4,"expiryYear":-1,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}
+{"description":"Expiry year in past with future month","payload":{"cardNumber":"2222405343248877","expiryMonth":12,"expiryYear":2020,"cvv":"123","amount":{"currency":"GBP","amount":100}},"expectedStatus":400}

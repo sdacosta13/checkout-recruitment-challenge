@@ -30,11 +30,15 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
     {
         var result = await paymentRequestValidator.ValidateAsync(dto);
         if (!result.IsValid)
-            return BadRequest(result.Errors);
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            return ValidationProblem();
+        }
 
         var paymentResponse = await paymentService.AuthorizeAsync(dto);
         if (paymentResponse is null)
-            return StatusCode(502);
+            return Problem(statusCode: 502, title: "Bad Gateway", detail: "The acquiring bank could not be reached.");
 
         paymentsRepository.Add(paymentResponse);
 

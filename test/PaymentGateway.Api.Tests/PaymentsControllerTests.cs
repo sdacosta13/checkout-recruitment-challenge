@@ -16,6 +16,15 @@ using Xunit.Abstractions;
 
 namespace PaymentGateway.Api.Tests;
 
+file class NoRetryPolicy : IRetryPolicy
+{
+    public async Task<T?> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default)
+    {
+        try { return await operation(); }
+        catch (HttpRequestException) { return default; }
+    }
+}
+
 public class PaymentsControllerTests(ITestOutputHelper output)
 {
     private readonly PaymentResponse _authorizedPayment = new()
@@ -55,6 +64,36 @@ public class PaymentsControllerTests(ITestOutputHelper output)
         Assert.Equal(_authorizedPayment.ExpiryYear, paymentResponse.ExpiryYear);
         Assert.Equal(_authorizedPayment.Amount.Amount, paymentResponse.Amount.Amount);
         Assert.Equal(_authorizedPayment.Amount.Currency, paymentResponse.Amount.Currency);
+    }
+
+    [Fact]
+    public async Task Returns502WhenBankIsDown()
+    {
+        // Arrange
+        var factory = new WebApplicationFactory<PaymentsController>().WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddXunit(output); });
+            builder.ConfigureServices(services =>
+            {
+                services.AddHttpClient("BankSimulator", c => c.BaseAddress = new Uri("http://localhost:1"));
+                services.AddSingleton<IRetryPolicy, NoRetryPolicy>();
+            });
+        });
+
+        var request = new
+        {
+            cardNumber = "2222405343248877",
+            expiryMonth = 4,
+            expiryYear = 2027,
+            cvv = "123",
+            amount = new { currency = "GBP", amount = 100 }
+        };
+
+        // Act
+        var response = await factory.CreateClient().PostAsJsonAsync("/api/payments", request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
     }
 
     [Fact]

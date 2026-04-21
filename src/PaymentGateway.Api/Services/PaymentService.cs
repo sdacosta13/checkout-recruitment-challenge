@@ -10,28 +10,11 @@ public interface IPaymentService
     Task<PaymentResponse?> AuthorizeAsync(NewPaymentRequestDto request, CancellationToken ct = default);
 }
 
-public class PaymentService(IBankAccountClient bankClient) : IPaymentService
+public class PaymentService(IBankAccountClient bankClient, IRetryPolicy retryPolicy) : IPaymentService
 {
-    private const int MaxAttempts = 3;
-    private static readonly TimeSpan BaseDelay = TimeSpan.FromSeconds(1);
-
-    public async Task<PaymentResponse?> AuthorizeAsync(NewPaymentRequestDto request, CancellationToken ct = default)
+    public Task<PaymentResponse?> AuthorizeAsync(NewPaymentRequestDto request, CancellationToken ct = default)
     {
         var record = RecordMapper.ToPaymentRecord(request);
-
-        for (var attempt = 0; attempt < MaxAttempts; attempt++)
-        {
-            try
-            {
-                return await bankClient.AuthorizeAsync(record, ct);
-            }
-            catch (HttpRequestException) when (attempt < MaxAttempts - 1)
-            {
-                var delay = BaseDelay * Math.Pow(2, attempt);
-                await Task.Delay(delay, ct);
-            }
-        }
-
-        return null;
+        return retryPolicy.ExecuteAsync(() => bankClient.AuthorizeAsync(record, ct), ct);
     }
 }

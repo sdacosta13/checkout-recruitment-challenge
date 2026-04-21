@@ -8,11 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
 builder.Services.AddSingleton<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IPaymentRepository, PaymentsRepository>();
 builder.Services.AddSingleton<ITimeService, DateTimeService>();
