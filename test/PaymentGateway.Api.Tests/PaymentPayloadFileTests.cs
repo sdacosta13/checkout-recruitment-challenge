@@ -1,10 +1,14 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using PaymentGateway.Api.Models.Responses;
 
 using PaymentGateway.Api.Clients;
 using PaymentGateway.Api.Controllers;
@@ -55,6 +59,39 @@ public class PaymentPayloadFileTests(ITestOutputHelper output)
                 services.AddSingleton<IBankAccountClient, AlwaysAuthorizedBankClient>());
         });
 
+    private static async Task AssertResponseBodyAsync(HttpResponseMessage response, int expectedStatus)
+    {
+        switch (expectedStatus)
+        {
+            case 200:
+                var payment = await response.Content.ReadFromJsonAsync<PaymentResponseDto>();
+                Assert.NotNull(payment);
+                Assert.NotEqual(Guid.Empty, payment.Id);
+                Assert.True(payment.Status is "Authorized" or "Declined");
+                Assert.Equal(4, payment.CardNumberLastFour.Length);
+                Assert.InRange(payment.ExpiryMonth, 1, 12);
+                Assert.True(payment.ExpiryYear > 0);
+                Assert.NotNull(payment.Amount);
+                Assert.True(payment.Amount.Amount >= 0);
+                Assert.NotEmpty(payment.Amount.Currency);
+                break;
+
+            case 400:
+                var validationProblem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+                Assert.NotNull(validationProblem);
+                Assert.Equal(400, validationProblem.Status);
+                Assert.NotEmpty(validationProblem.Errors);
+                break;
+
+            case 502:
+                var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+                Assert.NotNull(problem);
+                Assert.Equal(502, problem.Status);
+                Assert.NotEmpty(problem.Title!);
+                break;
+        }
+    }
+
     [Theory]
     [MemberData(nameof(TestCases))]
     public async Task PostPayment_ReturnsExpectedStatus(string description, string payloadJson, int expectedStatus)
@@ -66,6 +103,7 @@ public class PaymentPayloadFileTests(ITestOutputHelper output)
         var response = await client.PostAsync("/api/payments", content);
 
         Assert.Equal((HttpStatusCode)expectedStatus, response.StatusCode);
+        await AssertResponseBodyAsync(response, expectedStatus);
     }
 
     [Theory]
@@ -79,5 +117,6 @@ public class PaymentPayloadFileTests(ITestOutputHelper output)
         var response = await client.PostAsync("/api/payments", content);
 
         Assert.Equal((HttpStatusCode)expectedStatus, response.StatusCode);
+        await AssertResponseBodyAsync(response, expectedStatus);
     }
 }
