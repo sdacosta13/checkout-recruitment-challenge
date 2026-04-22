@@ -10,7 +10,6 @@ public static class RecordMapper
         {
             Id = Guid.NewGuid(),
             CardNumber = request.CardNumber,
-            Cvv = request.Cvv,
             Amount = ToAmount(request.Amount),
             ExpiryMonth = request.ExpiryMonth,
             ExpiryYear = request.ExpiryYear,

@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 using PaymentGateway.Api.Models.Entities;
 
 namespace PaymentGateway.Api.Services;
@@ -8,28 +10,12 @@ public interface IPaymentRepository
     bool TryGet(Guid id, out PaymentResponse? payment);
 }
 
-public class PaymentsRepository(ILogger<PaymentsRepository> logger) : IPaymentRepository
+public class PaymentsRepository : IPaymentRepository
 {
-    private readonly List<PaymentResponse> _payments = new();
+    private readonly ConcurrentDictionary<Guid, PaymentResponse> _payments = new();
 
-    public void Add(PaymentResponse payment)
-    {
-        _payments.Add(payment);
-    }
+    public void Add(PaymentResponse payment) => _payments[payment.Id] = payment;
 
-    public bool TryGet(Guid id, out PaymentResponse? payment)
-    {
-        var matchingRecords = _payments.Where(p => p.Id == id).ToList();
-        if (matchingRecords.Count == 1)
-        {
-            payment = matchingRecords[0];
-            return true;
-        }
-
-        if (matchingRecords.Count > 1)
-            logger.LogError("Multiple {RecordType} records found for {PaymentId}", nameof(PaymentResponse), id);
-
-        payment = null;
-        return false;
-    }
+    public bool TryGet(Guid id, out PaymentResponse? payment) =>
+        _payments.TryGetValue(id, out payment);
 }

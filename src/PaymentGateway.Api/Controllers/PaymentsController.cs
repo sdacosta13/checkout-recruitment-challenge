@@ -15,7 +15,8 @@ namespace PaymentGateway.Api.Controllers;
 [Produces("application/json")]
 public class PaymentsController(IPaymentRepository paymentsRepository,
     IPaymentService paymentService,
-    IValidator<NewPaymentRequestDto> paymentRequestValidator) : Controller
+    IValidator<NewPaymentRequestDto> paymentRequestValidator,
+    IIdempotencyStore idempotencyStore) : Controller
 {
     /// <summary>Retrieves a previously authorised payment by its unique identifier.</summary>
     /// <param name="id">The unique identifier of the payment.</param>
@@ -31,7 +32,7 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
         if (!found)
             return NotFound();
 
-        return Ok(DtoMapper.ToDto(paymentResponse));
+        return Ok(DtoMapper.ToDto(paymentResponse!));
     }
 
     /// <summary>Submits a new card payment for authorisation through the acquiring bank.</summary>
@@ -55,11 +56,18 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
             return ValidationProblem();
         }
 
+        var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
+        if (idempotencyKey is not null && idempotencyStore.TryGet(idempotencyKey, out var cached))
+            return Ok(DtoMapper.ToDto(cached!));
+
         var paymentResponse = await paymentService.AuthorizeAsync(dto);
         if (paymentResponse is null)
             return Problem(statusCode: 502, title: "Bad Gateway", detail: "The acquiring bank could not be reached.");
 
         paymentsRepository.Add(paymentResponse);
+
+        if (idempotencyKey is not null)
+            idempotencyStore.Set(idempotencyKey, paymentResponse);
 
         return Ok(DtoMapper.ToDto(paymentResponse));
     }

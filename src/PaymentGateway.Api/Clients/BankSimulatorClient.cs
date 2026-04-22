@@ -20,14 +20,14 @@ public record BankSimulatorResponse(
 
 public interface IBankAccountClient
 {
-    Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default);
+    Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, string cvv, CancellationToken ct = default);
 }
 
 public class BankAccountClient(IHttpClientFactory httpClientFactory) : IBankAccountClient
 {
     private const string ClientName = "BankSimulator";
 
-    public async Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default)
+    public async Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, string cvv, CancellationToken ct = default)
     {
         var client = httpClientFactory.CreateClient(ClientName);
 
@@ -36,7 +36,7 @@ public class BankAccountClient(IHttpClientFactory httpClientFactory) : IBankAcco
             ExpiryDate: $"{record.ExpiryMonth:D2}/{record.ExpiryYear}",
             Currency:   record.Amount.Currency,
             Amount:     record.Amount.Amount,
-            Cvv:        record.Cvv
+            Cvv:        cvv
         );
 
         var response = await client.PostAsJsonAsync("/payments", body, ct);

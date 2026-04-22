@@ -1,10 +1,10 @@
-﻿Use dtos
-Testing positive and negative cases
-Use enum status
-Don't duplicate anything unless it makes sense
-Use fluent validation
-Serilog w/ sinks 
-Health checks
+﻿Use dtos - 
+Testing positive and negative cases -
+Use enum status -
+Don't duplicate anything unless it makes sense -
+Use fluent validation -
+Serilog w/ sinks -
+Health checks 
 REST
 Swagger docs tags
 Idempotency key and exponential backoff

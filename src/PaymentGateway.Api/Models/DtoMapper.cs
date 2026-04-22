@@ -5,11 +5,8 @@ namespace PaymentGateway.Api.Models;
 
 public static class DtoMapper
 {
-    public static PaymentResponseDto? ToDto(PaymentResponse? response)
+    public static PaymentResponseDto ToDto(PaymentResponse response)
     {
-        if (response is null)
-            return null;
-
         return new()
         {
             Id = response.Id,

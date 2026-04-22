@@ -4,7 +4,6 @@ public class PaymentRecord
 {
     public required Guid Id { get; init; }
     public required string CardNumber { get; init; }
-    public required string Cvv { get; init; }
     public required int ExpiryMonth { get; init; }
     public required int ExpiryYear { get; init; }
     public required Money Amount { get; init; }
