@@ -2,7 +2,7 @@ namespace PaymentGateway.Api.Services;
 
 public interface IRetryPolicy
 {
-    Task<T?> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default);
+    Task<(T? response, int attempts)> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default);
 }
 
 public class ExponentialBackoffRetryPolicy : IRetryPolicy
@@ -10,13 +10,13 @@ public class ExponentialBackoffRetryPolicy : IRetryPolicy
     private const int MaxAttempts = 5;
     private static readonly TimeSpan BaseDelay = TimeSpan.FromSeconds(1);
 
-    public async Task<T?> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default)
+    public async Task<(T? response, int attempts)> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default)
     {
         for (var attempt = 0; attempt < MaxAttempts; attempt++)
         {
             try
             {
-                return await operation();
+                return (await operation(), attempt + 1);
             }
             catch (HttpRequestException)
             {

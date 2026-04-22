@@ -18,10 +18,16 @@ namespace PaymentGateway.Api.Tests;
 
 file class NoRetryPolicy : IRetryPolicy
 {
-    public async Task<T?> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default)
+    public async Task<(T? response, int attempts)> ExecuteAsync<T>(Func<Task<T?>> operation, CancellationToken ct = default)
     {
-        try { return await operation(); }
-        catch (HttpRequestException) { return default; }
+        try
+        {
+            return (await operation(), 1);
+        }
+        catch (HttpRequestException)
+        {
+            return default;
+        }
     }
 }
 

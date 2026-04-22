@@ -45,7 +45,9 @@ public class BankAccountClient(IHttpClientFactory httpClientFactory) : IBankAcco
 
         var bankResponse = await response.Content.ReadFromJsonAsync<BankSimulatorResponse>(cancellationToken: ct);
 
-        return bankResponse is null ? null : ToPaymentResponse(bankResponse, record);
+        return bankResponse is null 
+            ? null 
+            : ToPaymentResponse(bankResponse, record);
     }
 
     private static PaymentResponse ToPaymentResponse(BankSimulatorResponse bankResponse, PaymentRecord record) =>

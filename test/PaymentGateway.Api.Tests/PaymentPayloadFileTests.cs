@@ -8,12 +8,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using PaymentGateway.Api.Models.Responses;
-
-using PaymentGateway.Api.Clients;
 using PaymentGateway.Api.Controllers;
-using PaymentGateway.Api.Enums;
-using PaymentGateway.Api.Models.Entities;
+using PaymentGateway.Api.Models.Responses;
 
 using Xunit.Abstractions;
 using Xunit.Extensions.Logging;
@@ -22,21 +18,8 @@ namespace PaymentGateway.Api.Tests;
 
 file record PayloadTestCase(string Description, JsonElement Payload, int ExpectedStatus);
 
-file class AlwaysAuthorizedBankClient : IBankAccountClient
-{
-    public Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, CancellationToken ct = default) =>
-        Task.FromResult<PaymentResponse?>(new PaymentResponse
-        {
-            Id = record.Id,
-            Status = PaymentStatus.Authorized,
-            CardNumberLastFour = record.CardNumber[^4..],
-            Amount = record.Amount,
-            ExpiryMonth = record.ExpiryMonth,
-            ExpiryYear = record.ExpiryYear,
-        });
-}
-
-public class PaymentPayloadFileTests(ITestOutputHelper output)
+[Collection(BankSimulatorCollection.Name)]
+public class PaymentPayloadFileTests(BankSimulatorFixture bankSimulator, ITestOutputHelper output)
 {
     private static IEnumerable<object[]> LoadTestCases(string filename)
     {
@@ -56,7 +39,7 @@ public class PaymentPayloadFileTests(ITestOutputHelper output)
         {
             builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddXunit(output); });
             builder.ConfigureServices(services =>
-                services.AddSingleton<IBankAccountClient, AlwaysAuthorizedBankClient>());
+                services.AddHttpClient("BankSimulator", c => c.BaseAddress = bankSimulator.BaseAddress));
         });
 
     private static async Task AssertResponseBodyAsync(HttpResponseMessage response, int expectedStatus)

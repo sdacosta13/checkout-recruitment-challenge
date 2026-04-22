@@ -5,12 +5,26 @@ using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Models.Requests;
 
+/// <summary>Payload for submitting a new card payment.</summary>
 public record NewPaymentRequestDto
 {
+    /// <summary>Full card number (14–19 digits, no spaces or dashes).</summary>
+    /// <example>2222405343248877</example>
     public required string CardNumber { get; init; }
+
+    /// <summary>Card expiry month (1–12).</summary>
+    /// <example>4</example>
     public required int ExpiryMonth { get; init; }
+
+    /// <summary>Card expiry year (four-digit, must be in the future).</summary>
+    /// <example>2025</example>
     public required int ExpiryYear { get; init; }
-    public required string Cvv { get; init; }   
+
+    /// <summary>Card security code (3–4 digits).</summary>
+    /// <example>123</example>
+    public required string Cvv { get; init; }
+
+    /// <summary>The amount and currency to charge.</summary>
     public required MoneyDto Amount { get; init; }
 }
 
