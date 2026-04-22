@@ -43,3 +43,6 @@ No authentication or authorisation is implemented. Any caller can retrieve any p
 
 - Health checks do not probe downstream dependencies (e.g. the bank or database)
 - No graceful shutdown handling — in-flight requests may be interrupted on pod termination
+- Missing automated build pipelines - these would be best done in YAML.
+- No load testing is in place. This would be needed to determine safety in production 
+- Missing dockerization. This can make testing and deployment harder as there's more possibilities for environmental differences
