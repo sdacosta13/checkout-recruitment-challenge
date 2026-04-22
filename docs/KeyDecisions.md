@@ -35,6 +35,7 @@ There are default trace ids from ASP.NET Core, but they have not been forwarded 
 
 # Retry policy 
 Currently, all HttpRequestExceptions are retried. These should probably be filtered so that we only retry on transient errors that we can detect (via status code)
+Additionally any 400's are currently retried which is rather pointless as it's unlikely to change
 
 # Security 
 No authentication or authorisation is currently implemented. Any user can currently see any payments made by other users.
