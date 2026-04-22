@@ -30,14 +30,17 @@ The repository is in-memory, so all data is lost on restart. The idempotency sto
 ### Observability
 
 Trace IDs from ASP.NET Core are not forwarded to the bank client, making it difficult to correlate gateway logs with downstream requests. A proper distributed tracing setup (e.g. OpenTelemetry) would be needed in production.
+No alerts have been defined. This would mean that no developers would be notified of failures
 
 ### Retry Policy
 
 All `HttpRequestException`s are currently retried, including bank 4xx responses which are unlikely to succeed on a retry. The policy should filter to only retry on transient errors detectable by status code (e.g. 503, 429).
 
 ### Security
-
-No authentication or authorisation is implemented. Any caller can retrieve any payment by ID. Rate limiting is also absent.
+No input sanitization beyond validation (e.g. oversized payloads could be an issue)
+No HTTPS enforcement in production config (only redirects in middleware, no cert management)
+No authentication or authorisation is implemented. Any caller can retrieve any payment by ID. 
+Rate limiting is also absent.
 
 ### Operational Readiness
 
@@ -46,3 +49,4 @@ No authentication or authorisation is implemented. Any caller can retrieve any p
 - Missing automated build pipelines - these would be best done in YAML.
 - No load testing is in place. This would be needed to determine safety in production 
 - Missing dockerization. This can make testing and deployment harder as there's more possibilities for environmental differences
+- No Secret or Configuration management - Something like Azure key vault and Azure App Configuration is needed
