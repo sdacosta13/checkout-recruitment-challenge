@@ -42,9 +42,6 @@ public class NewPaymentRequestDtoValidator : AbstractValidator<NewPaymentRequest
 
         RuleFor(x => x.ExpiryMonth)
             .InclusiveBetween(1, 12);
-
-        RuleFor(x => x.ExpiryYear)
-            .GreaterThan(0);
         
         RuleFor(x => x)
             .Must(HaveExpiryInTheFuture)

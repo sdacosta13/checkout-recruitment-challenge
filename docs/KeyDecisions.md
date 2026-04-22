@@ -25,9 +25,9 @@ An uptime monitor like gatus would also be useful
 ## Production Gaps
 # Storage
 The repository is currently in memory which means all data is lots on restart.
-Additionally, the idempotency store has no TTL, so it will grow infinitely. 
+Additionally, the idempotency store has no TTL, so it will grow infinitely. Also, the idempotency store should be external to the service. 
 The storage should be seperated from the API so that the application can be horizontally scaled.
-The idempotency store should be external to the service
+
 
 # Observability 
 Currently, logs/requests do not have tracing ids properly configure, which would make supporting the application tricky.

@@ -18,7 +18,7 @@ public class ExponentialBackoffRetryPolicy : IRetryPolicy
             {
                 return (await operation(), attempt + 1);
             }
-            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
+            catch (Exception e) when (e is HttpRequestException)
             {
                 // Always catch so the final attempt falls through to return null rather than throwing
                 if (attempt < MaxAttempts - 1)
