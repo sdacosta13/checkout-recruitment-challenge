@@ -10,16 +10,16 @@ The API is documented as a REST API using Swagger to aid merchant integration.
 
 ## Non-Functional Requirements
 
-| Concern | Decision |
-|---|---|
-| **Decoupling** | DTOs are used at all service boundaries to decouple internal versioning from the API contract |
+| Concern           | Decision                                                                                                                                     |
+|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| **Decoupling**    | DTOs are used at all service boundaries to decouple internal versioning from the API contract                                                |
 | **Observability** | Serilog with structured logging and request middleware; production would add DataDog/Application Insights and an uptime monitor (e.g. Gatus) |
-| **Idempotency** | Clients may supply an `Idempotency-Key` header; duplicate requests with the same key return the cached response without re-charging |
-| **Concurrency** | All singleton services use `ConcurrentDictionary` to handle concurrent requests safely |
-| **Resilience** | Failures calling the bank are retried with exponential backoff to reduce pressure during transient outages |
-| **Consistency** | Problem Details (RFC 7807) is used for all error responses |
-| **Health** | A `/health` endpoint is registered for liveness checks |
-| **Testing** | The Docker-based bank simulator is used in integration tests via Testcontainers, giving confidence against the real simulator behaviour |
+| **Idempotency**   | Clients may supply an `Idempotency-Key` header; duplicate requests with the same key return the cached response without re-charging          |
+| **Concurrency**   | All singleton services use `ConcurrentDictionary` to handle concurrent requests safely                                                       |
+| **Resilience**    | Failures calling the bank are retried with exponential backoff to reduce pressure during transient outages                                   |
+| **Consistency**   | Problem Details (RFC 7807) is used for all error responses                                                                                   |
+| **Health**        | A `/health` endpoint is registered for liveness checks                                                                                       |
+| **Testing**       | The Docker-based bank simulator is used in integration tests via Testcontainers, giving confidence against the real simulator behaviour      |
 
 ## Production Gaps
 
