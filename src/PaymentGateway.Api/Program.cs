@@ -6,7 +6,13 @@ using PaymentGateway.Api.Clients;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Services;
 
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, config) =>
+    config.ReadFrom.Configuration(ctx.Configuration)
+          .Enrich.FromLogContext());
 
 // Add services to the container.
 
@@ -38,7 +44,7 @@ builder.Services.AddHttpClient("BankSimulator", c =>
 {
     c.BaseAddress = new Uri("http://localhost:8080");
 });
-builder.Services.AddTransient<IBankAccountClient, BankAccountClient>();
+builder.Services.AddTransient<IAcquiringBankClient, MockBankClient>();
 
 var app = builder.Build();
 
@@ -48,6 +54,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 

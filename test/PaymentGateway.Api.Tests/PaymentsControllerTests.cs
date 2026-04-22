@@ -114,7 +114,7 @@ public class PaymentsControllerTests(ITestOutputHelper output)
         var client = CreateFactory().CreateClient();
 
         // Act
-        var response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
+        var response = await client.GetAsync($"/api/v1/Payments/{Guid.NewGuid()}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

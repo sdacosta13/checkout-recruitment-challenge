@@ -16,7 +16,7 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentsController(IPaymentRepository paymentsRepository,
     IPaymentService paymentService,
     IValidator<NewPaymentRequestDto> paymentRequestValidator,
-    IIdempotencyStore idempotencyStore) : Controller
+    IIdempotencyStore idempotencyStore) : ControllerBase
 {
     /// <summary>Retrieves a previously authorised payment by its unique identifier.</summary>
     /// <param name="id">The unique identifier of the payment.</param>
@@ -37,6 +37,7 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
 
     /// <summary>Submits a new card payment for authorisation through the acquiring bank.</summary>
     /// <param name="dto">The payment details including card information and amount.</param>
+    /// <param name="ct">Cancellation token.</param>
     /// <returns>The authorisation result with a generated payment identifier.</returns>
     /// <response code="200">Payment processed (authorised or declined). Check the <c>Status</c> field.</response>
     /// <response code="400">The request payload failed validation.</response>
@@ -46,9 +47,9 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
     [ProducesResponseType(typeof(PaymentResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status502BadGateway)]
-    public async Task<ActionResult> PostPayment([FromBody] NewPaymentRequestDto dto)
+    public async Task<ActionResult> PostPayment([FromBody] NewPaymentRequestDto dto, CancellationToken ct)
     {
-        var result = await paymentRequestValidator.ValidateAsync(dto);
+        var result = await paymentRequestValidator.ValidateAsync(dto, ct);
         if (!result.IsValid)
         {
             foreach (var error in result.Errors)
@@ -60,14 +61,14 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
         if (idempotencyKey is not null && idempotencyStore.TryGet(idempotencyKey, out var cached))
             return Ok(DtoMapper.ToDto(cached!));
 
-        var paymentResponse = await paymentService.AuthorizeAsync(dto);
+        var paymentResponse = await paymentService.AuthorizeAsync(dto, ct);
         if (paymentResponse is null)
             return Problem(statusCode: 502, title: "Bad Gateway", detail: "The acquiring bank could not be reached.");
 
-        paymentsRepository.Add(paymentResponse);
-
         if (idempotencyKey is not null)
             idempotencyStore.Set(idempotencyKey, paymentResponse);
+
+        paymentsRepository.Add(paymentResponse);
 
         return Ok(DtoMapper.ToDto(paymentResponse));
     }

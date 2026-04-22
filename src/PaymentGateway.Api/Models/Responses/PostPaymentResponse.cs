@@ -7,7 +7,7 @@ public record PaymentResponseDto
     /// <example>550e8400-e29b-41d4-a716-446655440000</example>
     public required Guid Id { get; set; }
 
-    /// <summary>Outcome of the authorisation attempt: <c>Authorized</c>, <c>Declined</c>, or <c>Rejected</c>.</summary>
+    /// <summary>Outcome of the authorisation attempt: <c>Authorized</c>, <c>Declined</c>.</summary>
     /// <example>Authorized</example>
     public required string Status { get; set; }
 

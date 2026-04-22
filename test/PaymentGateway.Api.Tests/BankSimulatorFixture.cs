@@ -19,8 +19,7 @@ public class BankSimulatorFixture : IAsyncLifetime
     {
         var impostersPath = Path.Combine(AppContext.BaseDirectory, "imposters");
 
-        _container = new ContainerBuilder()
-            .WithImage("bbyars/mountebank:2.8.1")
+        _container = new ContainerBuilder("bbyars/mountebank:2.8.1")
             .WithPortBinding(8080, true)
             .WithBindMount(impostersPath, "/imposters")
             .WithCommand("--configfile", "/imposters/bank_simulator.ejs", "--allowInjection")

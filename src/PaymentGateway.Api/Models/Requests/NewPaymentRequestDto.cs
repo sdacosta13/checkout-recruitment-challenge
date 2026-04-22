@@ -52,7 +52,7 @@ public class NewPaymentRequestDtoValidator : AbstractValidator<NewPaymentRequest
         
         RuleFor(x => x.Cvv)
             .Matches("^\\d{3,4}$")
-            .WithMessage("Card number must be between 14 and 19 digits long");
+            .WithMessage("The CVV must be between 3 and 4 digits long");
 
         RuleFor(x => x.Amount)
             .Must(BeNonNegative)

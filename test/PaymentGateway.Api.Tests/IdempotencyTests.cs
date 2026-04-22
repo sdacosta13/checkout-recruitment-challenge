@@ -1,17 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
-
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
-
 using Xunit.Abstractions;
-using Xunit.Extensions.Logging;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -41,12 +37,15 @@ public class IdempotencyTests(BankSimulatorFixture bankSimulator, ITestOutputHel
     [Fact]
     public async Task SameKey_ReturnsSamePaymentId()
     {
+        // Arrange
         var client = CreateFactory().CreateClient();
         var key = Guid.NewGuid().ToString();
 
+        // Act
         var first = await PostAsync(client, ValidPayload, key);
         var second = await PostAsync(client, ValidPayload, key);
 
+        // Assert
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
 
@@ -59,11 +58,14 @@ public class IdempotencyTests(BankSimulatorFixture bankSimulator, ITestOutputHel
     [Fact]
     public async Task DifferentKeys_ReturnDifferentPaymentIds()
     {
+        // Arrange
         var client = CreateFactory().CreateClient();
 
+        // Act
         var first = await PostAsync(client, ValidPayload, Guid.NewGuid().ToString());
         var second = await PostAsync(client, ValidPayload, Guid.NewGuid().ToString());
 
+        // Assert
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
 
@@ -76,10 +78,13 @@ public class IdempotencyTests(BankSimulatorFixture bankSimulator, ITestOutputHel
     [Fact]
     public async Task NoKey_ProcessesNormally()
     {
+        // Arrange
         var client = CreateFactory().CreateClient();
 
+        // Act
         var response = await PostAsync(client, ValidPayload, idempotencyKey: null);
 
+        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var payment = await response.Content.ReadFromJsonAsync<PaymentResponseDto>();
         Assert.NotNull(payment);
@@ -89,9 +94,9 @@ public class IdempotencyTests(BankSimulatorFixture bankSimulator, ITestOutputHel
     [Fact]
     public async Task InvalidPayload_WithKey_IsNotCached_AllowsRetryWithValidPayload()
     {
+        // Arrange
         var client = CreateFactory().CreateClient();
         var key = Guid.NewGuid().ToString();
-
         var invalidPayload = new
         {
             cardNumber = "invalid",
@@ -101,11 +106,12 @@ public class IdempotencyTests(BankSimulatorFixture bankSimulator, ITestOutputHel
             amount = new { currency = "GBP", amount = 100 }
         };
 
+        // Act
         var badResponse = await PostAsync(client, invalidPayload, key);
-        Assert.Equal(HttpStatusCode.BadRequest, badResponse.StatusCode);
-
-        // Same key, now with a valid payload — should process rather than return the cached 400
         var goodResponse = await PostAsync(client, ValidPayload, key);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, badResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, goodResponse.StatusCode);
     }
 

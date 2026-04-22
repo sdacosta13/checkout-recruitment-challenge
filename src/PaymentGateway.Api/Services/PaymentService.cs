@@ -10,12 +10,12 @@ public interface IPaymentService
     Task<PaymentResponse?> AuthorizeAsync(NewPaymentRequestDto request, CancellationToken ct = default);
 }
 
-public class PaymentService(ILogger<PaymentService> paymentService, IBankAccountClient bankClient, IRetryPolicy retryPolicy) : IPaymentService
+public class PaymentService(ILogger<PaymentService> paymentService, IAcquiringBankClient acquiringBankClient, IRetryPolicy retryPolicy) : IPaymentService
 {
     public async Task<PaymentResponse?> AuthorizeAsync(NewPaymentRequestDto request, CancellationToken ct = default)
     {
         var record = RecordMapper.ToPaymentRecord(request);
-        var (response, attemptCount) = await retryPolicy.ExecuteAsync(() => bankClient.AuthorizeAsync(record, request.Cvv, ct), ct);
+        var (response, attemptCount) = await retryPolicy.ExecuteAsync(() => acquiringBankClient.AuthorizeAsync(record, request.Cvv, ct), ct);
         
         if(response is null)
             paymentService.LogWarning("Could not authorize payment record as we did not receive a response from the backend after {attempts}", attemptCount);

@@ -18,12 +18,12 @@ public record BankSimulatorResponse(
     [property: JsonPropertyName("authorization_code")] string AuthorizationCode
 );
 
-public interface IBankAccountClient
+public interface IAcquiringBankClient
 {
     Task<PaymentResponse?> AuthorizeAsync(PaymentRecord record, string cvv, CancellationToken ct = default);
 }
 
-public class BankAccountClient(IHttpClientFactory httpClientFactory) : IBankAccountClient
+public class MockBankClient(IHttpClientFactory httpClientFactory) : IAcquiringBankClient
 {
     private const string ClientName = "BankSimulator";
 
