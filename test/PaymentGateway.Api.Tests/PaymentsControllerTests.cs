@@ -45,7 +45,11 @@ public class PaymentsControllerTests(ITestOutputHelper output)
 
     private WebApplicationFactory<PaymentsController> CreateFactory() =>
         new WebApplicationFactory<PaymentsController>().WithWebHostBuilder(builder =>
-            builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddXunit(output); }));
+        {
+            builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddXunit(output); });
+            builder.ConfigureServices(services =>
+                services.AddSingleton<ITimeService>(new FrozenTimeService(FrozenTimeService.Default)));
+        });
 
     [Fact]
     public async Task RetrievesAPaymentSuccessfully()
@@ -57,7 +61,7 @@ public class PaymentsControllerTests(ITestOutputHelper output)
         repository.Add(_authorizedPayment);
 
         // Act
-        var response = await client.GetAsync($"/api/payments/{_authorizedPayment.Id}");
+        var response = await client.GetAsync($"/api/v1/payments/{_authorizedPayment.Id}");
         var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponseDto>();
 
         // Assert
@@ -83,6 +87,7 @@ public class PaymentsControllerTests(ITestOutputHelper output)
             {
                 services.AddHttpClient("BankSimulator", c => c.BaseAddress = new Uri("http://localhost:1"));
                 services.AddSingleton<IRetryPolicy, NoRetryPolicy>();
+                services.AddSingleton<ITimeService>(new FrozenTimeService(FrozenTimeService.Default));
             });
         });
 
@@ -96,7 +101,7 @@ public class PaymentsControllerTests(ITestOutputHelper output)
         };
 
         // Act
-        var response = await factory.CreateClient().PostAsJsonAsync("/api/payments", request);
+        var response = await factory.CreateClient().PostAsJsonAsync("/api/v1/payments", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);

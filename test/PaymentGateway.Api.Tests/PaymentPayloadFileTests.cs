@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Api.Services;
 
 using Xunit.Abstractions;
 using Xunit.Extensions.Logging;
@@ -39,7 +40,10 @@ public class PaymentPayloadFileTests(BankSimulatorFixture bankSimulator, ITestOu
         {
             builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddXunit(output); });
             builder.ConfigureServices(services =>
-                services.AddHttpClient("BankSimulator", c => c.BaseAddress = bankSimulator.BaseAddress));
+            {
+                services.AddHttpClient("BankSimulator", c => c.BaseAddress = bankSimulator.BaseAddress);
+                services.AddSingleton<ITimeService>(new FrozenTimeService(FrozenTimeService.Default));
+            });
         });
 
     private static async Task AssertResponseBodyAsync(HttpResponseMessage response, int expectedStatus)
@@ -83,7 +87,7 @@ public class PaymentPayloadFileTests(BankSimulatorFixture bankSimulator, ITestOu
         var client = CreateFactory().CreateClient();
 
         using var content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json");
-        var response = await client.PostAsync("/api/payments", content);
+        var response = await client.PostAsync("/api/v1/payments", content);
 
         Assert.Equal((HttpStatusCode)expectedStatus, response.StatusCode);
         await AssertResponseBodyAsync(response, expectedStatus);
@@ -97,7 +101,7 @@ public class PaymentPayloadFileTests(BankSimulatorFixture bankSimulator, ITestOu
         var client = CreateFactory().CreateClient();
 
         using var content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json");
-        var response = await client.PostAsync("/api/payments", content);
+        var response = await client.PostAsync("/api/v1/payments", content);
 
         Assert.Equal((HttpStatusCode)expectedStatus, response.StatusCode);
         await AssertResponseBodyAsync(response, expectedStatus);
