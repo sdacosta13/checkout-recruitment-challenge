@@ -59,7 +59,7 @@ public class PaymentsController(IPaymentRepository paymentsRepository,
 
         var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
         if (idempotencyKey is not null && idempotencyStore.TryGet(idempotencyKey, out var cached))
-            return Ok(DtoMapper.ToDto(cached!));
+            return Ok(DtoMapper.ToDto(cached));
 
         var paymentResponse = await paymentService.AuthorizeAsync(dto, ct);
         if (paymentResponse is null)
