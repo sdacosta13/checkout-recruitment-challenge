@@ -48,5 +48,6 @@ Rate limiting is also absent.
 - No graceful shutdown handling — in-flight requests may be interrupted on pod termination
 - Missing automated build pipelines - these would be best done in YAML.
 - No load testing is in place. This would be needed to determine safety in production 
-- Missing dockerization. This can make testing and deployment harder as there's more possibilities for environmental differences
+- Missing dockerization. This can make testing and deployment harder as there's more possibilities for environmental differences.
+- Docker hardened images should be used. This reduces the attack surface for a malicious actor as there is no shell in DHIs
 - No Secret or Configuration management - Something like Azure key vault and Azure App Configuration is needed
